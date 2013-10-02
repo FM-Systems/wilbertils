@@ -10,7 +10,7 @@ module Wilbertils; module Search
         if (search.max_score < threshold)
           search = locality_search.match_closest_location(locality_search.find_best_word(locality_name), postcode)
         end
-        Locality.find(search[id]) unless search.max_score < threshold || search['id'].nil?
+        Locality.find(search['id']) unless search.max_score < threshold || search['id'].nil?
       end
     end
 
