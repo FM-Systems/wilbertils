@@ -1,6 +1,6 @@
 # Wilbertils
 
-TODO: Write a gem description
+Wilberforce project utility belt
 
 ## Installation
 
