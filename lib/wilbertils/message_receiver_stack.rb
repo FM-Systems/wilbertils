@@ -3,11 +3,11 @@ module Wilbertils
     include Singleton
 
     def self.add receiver
-      Wilbertils::MessageReceiverStack.instance.add receiver
+      self.instance.add receiver
     end
 
     def self.shutdown
-      Wilbertils::MessageReceiverStack.instance.shutdown
+      self.instance.shutdown
     end
 
     def initialize

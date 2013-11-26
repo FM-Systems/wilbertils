@@ -1,5 +1,6 @@
-module Wilbertils
+require 'wilbertils/sqs'
 
+module Wilbertils
   class MessageReceiver
 
     @shutdown = false
