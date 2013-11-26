@@ -1,6 +1,5 @@
 require 'resolv'
 require 'statsd'
-require 'rainman/config'
 
 module Wilbertils; module Metrics
   extend self
