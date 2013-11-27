@@ -1,11 +1,11 @@
 module Wilbertils; module SQS
   extend self
 
-  def queues config
-    client.queues(config)
+  def queues(config)
+    client(config).queues
   end
 
-  def client config
+  def client(config)
     @sqs ||= AWS::SQS.new(
       :access_key_id => config.aws_access_key_id,
       :secret_access_key => config.aws_secret_access_key,
