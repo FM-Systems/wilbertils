@@ -1,3 +1,4 @@
+require 'singleton'
 module Wilbertils
   class MessageReceiverStack
     include Singleton

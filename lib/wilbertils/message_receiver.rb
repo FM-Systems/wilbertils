@@ -20,7 +20,7 @@ module Wilbertils
     def poll
       @queue.poll(:poll_interval => 60) do |msg|
         logger.info "received a message with id: #{msg.id}"
-        METRICS.increment "message-received-#{@message_processor_class}"
+        METRICS.increment "message-received-#{@message_processor_class}" if defined?(METRICS)
         begin
           params = @message_translator_class.new(msg).translate
           @message_processor_class.new(params).execute
@@ -28,7 +28,7 @@ module Wilbertils
         rescue => e
           logger.error "Error: Failed to process message using #{@message_processor_class}. Reason given: #{e.message}"
           logger.error e.backtrace
-          METRICS.increment "message-error-#{@message_processor_class}"
+          METRICS.increment "message-error-#{@message_processor_class}" if defined?(METRICS)
         end
       end
     end
