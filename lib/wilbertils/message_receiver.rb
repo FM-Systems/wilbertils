@@ -3,12 +3,13 @@ require 'wilbertils/sqs'
 module Wilbertils
   class MessageReceiver
 
-    @shutdown = false
+    include Wilbertils::ExceptionHandler
 
     def initialize queue_name, message_processor_class, message_translator_class, config
       @message_translator_class= message_translator_class
       @message_processor_class= message_processor_class
       @queue= Wilbertils::SQS.queues(config)[queue_name]
+      @shutdown = false
       raise unless @queue.exists?
     end
 
@@ -28,6 +29,7 @@ module Wilbertils
           rescue => e
             logger.error "Error: Failed to process message using #{@message_processor_class}. Reason given: #{e.message}"
             logger.error e.backtrace
+            rescue_programmatic_error e
             METRICS.increment "message-error-#{@message_processor_class}" if defined?(METRICS)
           end
         end
