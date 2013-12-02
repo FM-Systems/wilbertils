@@ -14,7 +14,7 @@ describe Wilbertils::MessageReceiver do
 
   class FakeQueue
 
-    attr_reader :thing, :message
+    attr_reader :message
 
     def initialize message
       @message = message
@@ -80,10 +80,9 @@ describe Wilbertils::MessageReceiver do
 
       def now?
         @runs += 1
-        if @runs > @times
-          true
-        end
+        @runs > @times
       end
+
     end
 
   end
