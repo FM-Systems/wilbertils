@@ -5,7 +5,7 @@ module Wilbertils; module Metrics
   extend self
 
   def self.factory (namespace, config)
-    if config.metrics_enabled == 'true'
+    if config.metrics_enabled == 'true' || config.metrics_enabled == true
     begin
       statsd_host= Resolv.getaddress(config.metrics_server)
       Statsd.new(statsd_host, 8125).tap do |s|
