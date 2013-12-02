@@ -1,5 +1,6 @@
 require 'spec_helper_lite'
 require 'wilbertils'
+require 'wilbertils/logger'
 
 describe Wilbertils::MessageReceiver do
 
@@ -9,30 +10,32 @@ describe Wilbertils::MessageReceiver do
   let(:message_translator) { double('message_translator').as_null_object }
   let(:config) { double('config').as_null_object }
 
-  subject { Wilbertils::MessageReceiver.new('queue_name', message_processor, message_translator, config) }
+  let(:message) { double('message', :id => '123') }
+
+  class FakeQueue
+
+    attr_reader :thing, :message
+
+    def initialize message
+      @message = message
+    end
+
+    def poll(hash)
+      yield message
+    end
+
+    def exists?
+      true
+    end
+
+  end
+
+  subject { Wilbertils::MessageReceiver.new('queue_name', message_processor, message_translator, config, TestShutdown.new(1)) }
 
   before do
     Wilbertils::SQS.should_receive(:queues).and_return(queues)
-    queues.stub(:[]).and_return(message_queue)
-    Logger.should_receive(:new).any_number_of_times.and_return double(Logger).as_null_object
-  end
-
-  it 'should connect to the specified queue' do
-    queues.should_receive(:[]).with('test_queue').and_return(message_queue)
-
-    Wilbertils::MessageReceiver.new('test_queue', nil, nil, config)
-  end
-
-  it 'should fail when the queue does not exist' do
-    message_queue.should_receive(:exists?).and_return(false)
-
-    expect {subject}.to raise_error
-  end
-
-  it 'should poll indefinitely for a message' do
-    message_queue.should_receive(:poll)
-
-    subject.poll
+    queue = FakeQueue.new(message)
+    queues.stub(:[]).and_return(queue)
   end
 
   describe 'when a message is received' do
@@ -57,12 +60,29 @@ describe Wilbertils::MessageReceiver do
 
     describe 'when the extract process fails' do
       before do
-        message_queue.should_receive(:poll).and_yield(message).and_yield(message)
         message_processor.stub(:execute).and_raise()
       end
+
+      subject { Wilbertils::MessageReceiver.new('queue_name', message_processor, message_translator, config, TestShutdown.new(2) ) }
+
       it 'should continue to poll' do
         message_processor.should_receive(:new).twice()
         subject.poll
+      end
+    end
+
+    class TestShutdown
+
+      def initialize times
+        @times = times
+        @runs = 0
+      end
+
+      def now?
+        @runs += 1
+        if @runs > @times
+          true
+        end
       end
     end
 

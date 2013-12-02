@@ -1,25 +1,26 @@
 require 'wilbertils/sqs'
+require 'wilbertils/exception_handler'
 
 module Wilbertils
   class MessageReceiver
 
     include Wilbertils::ExceptionHandler
 
-    def initialize queue_name, message_processor_class, message_translator_class, config
-      @message_translator_class= message_translator_class
-      @message_processor_class= message_processor_class
-      @queue= Wilbertils::SQS.queues(config)[queue_name]
-      @shutdown = false
+    def initialize queue_name, message_processor_class, message_translator_class, config, shutdown = Shutdown.new
+      @message_translator_class = message_translator_class
+      @message_processor_class = message_processor_class
+      @queue = Wilbertils::SQS.queues(config)[queue_name]
+      @shutdown = shutdown
       raise unless @queue.exists?
     end
 
     def shutdown
       logger.info "Shutting down message receiver..."
-      @shutdown = true
+      @shutdown_now = true
     end
 
     def poll
-      until @shutdown do
+      until do_i_shutdown? do
         @queue.poll(:poll_interval => 60, :idle_timeout => 120) do |msg|
           logger.info "received a message with id: #{msg.id}"
           METRICS.increment "message-received-#{@message_processor_class}" if defined?(METRICS)
@@ -28,8 +29,7 @@ module Wilbertils
             @message_processor_class.new(params).execute
           rescue => e
             logger.error "Error: Failed to process message using #{@message_processor_class}. Reason given: #{e.message}"
-            logger.error e.backtrace
-            rescue_programmatic_error e
+            rescue_with_handler e
             METRICS.increment "message-error-#{@message_processor_class}" if defined?(METRICS)
           end
         end
@@ -37,6 +37,17 @@ module Wilbertils
       logger.info "Shut down message receiver"
     end
 
+    def do_i_shutdown?
+      @shutdown.now? { @shutdown_now }
+    end
+
+    class Shutdown
+      def now?
+        yield
+      end
+    end
+
   end
+
 
 end
