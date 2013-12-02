@@ -11,7 +11,7 @@ describe Wilbertils::Metrics do
     let(:metrics_server) { 'metrics_server' }
 
     before do
-      config.should_receive(:metrics_enabled).and_return(metrics_enabled)
+      allow(config).to receive(:metrics_enabled) { metrics_enabled }
     end
 
     context 'when metrics are disabled' do
