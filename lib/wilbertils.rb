@@ -10,5 +10,4 @@ require "wilbertils/airbrake_delivery_worker"
 require "wilbertils/metrics"
 
 module Wilbertils
-  # Your code goes here...
 end
