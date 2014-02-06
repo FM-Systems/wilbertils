@@ -1,5 +1,4 @@
 require "wilbertils/version"
-require "wilbertils/logger"
 require "wilbertils/search/locality_search"
 require "wilbertils/toggle"
 require "wilbertils/message_receiver_stack"

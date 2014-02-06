@@ -1,6 +1,6 @@
 require 'spec_helper_lite'
 require 'wilbertils'
-require 'wilbertils/logger'
+require_relative 'logger'
 
 describe Wilbertils::MessageReceiver do
 
