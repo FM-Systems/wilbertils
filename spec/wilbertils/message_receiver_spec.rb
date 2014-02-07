@@ -1,6 +1,5 @@
 require 'spec_helper_lite'
 require 'wilbertils'
-require_relative 'logger'
 
 describe Wilbertils::MessageReceiver do
 
@@ -11,6 +10,7 @@ describe Wilbertils::MessageReceiver do
   let(:config) { double('config').as_null_object }
 
   let(:message) { double('message', :id => '123') }
+  let(:logger) { mock.as_null_object }
 
   class FakeQueue
 
@@ -30,7 +30,7 @@ describe Wilbertils::MessageReceiver do
 
   end
 
-  subject { Wilbertils::MessageReceiver.new('queue_name', message_processor, message_translator, config, TestShutdown.new(1)) }
+  subject { Wilbertils::MessageReceiver.new('queue_name', message_processor, message_translator, config, logger, TestShutdown.new(1)) }
 
   before do
     Wilbertils::SQS.should_receive(:queues).and_return(queues)
@@ -63,7 +63,7 @@ describe Wilbertils::MessageReceiver do
         message_processor.stub(:execute).and_raise()
       end
 
-      subject { Wilbertils::MessageReceiver.new('queue_name', message_processor, message_translator, config, TestShutdown.new(2) ) }
+      subject { Wilbertils::MessageReceiver.new('queue_name', message_processor, message_translator, config, logger, TestShutdown.new(2) ) }
 
       it 'should continue to poll' do
         message_processor.should_receive(:new).twice()

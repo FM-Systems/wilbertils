@@ -6,11 +6,14 @@ module Wilbertils
 
     include Wilbertils::ExceptionHandler
 
-    def initialize queue_name, message_processor_class, message_translator_class, config, shutdown = Shutdown.new
+    attr_reader :logger
+
+    def initialize queue_name, message_processor_class, message_translator_class, config, logger, shutdown = Shutdown.new
       @message_translator_class = message_translator_class
       @message_processor_class = message_processor_class
       @queue = Wilbertils::SQS.queues(config)[queue_name]
       @shutdown = shutdown
+      @logger = logger
       raise unless @queue.exists?
     end
 
