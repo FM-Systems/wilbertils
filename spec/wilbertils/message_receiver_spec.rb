@@ -10,7 +10,7 @@ describe Wilbertils::MessageReceiver do
   let(:config) { double('config').as_null_object }
 
   let(:message) { double('message', :id => '123') }
-  let(:logger) { mock.as_null_object }
+  let(:logger) { double.as_null_object }
 
   class FakeQueue
 
@@ -39,7 +39,7 @@ describe Wilbertils::MessageReceiver do
   end
 
   describe 'when a message is received' do
-    let(:message) { double('message', :id => '123') }
+    let(:message) { double('message', :id => '123', :body => 'somebody') }
 
     before do
       message_queue.stub(:poll).and_yield(message)
@@ -56,6 +56,42 @@ describe Wilbertils::MessageReceiver do
       message_processor.should_receive(:new).with(params).and_return(instance=double('instance'))
       instance.should_receive(:execute)
       subject.poll
+    end
+
+    describe 'when a message without an id is encountered' do
+      let(:message) { double('message', :id => '') }
+      it 'should log an error but not raise an exception' do
+        logger.should_receive(:error).with /empty id/
+        message_translator.should_not_receive(:new) # execution should short-circuit
+        expect{ subject.poll }.to_not raise_error
+      end
+    end
+
+    describe 'when a message without a nil id is encountered' do
+      let(:message) { double('message', :id => nil) } # not sure this can actually happen
+      it 'should log an error but not raise an exception' do
+        logger.should_receive(:error).with /nil id/
+        message_translator.should_not_receive(:new) # execution should short-circuit
+        expect{ subject.poll }.to_not raise_error
+      end
+    end
+
+    describe 'when a message with an empty body is encountered' do
+      let(:message) { double('message', :id => '123', :body => '') }
+      it 'should log an error but not raise an exception' do
+        logger.should_receive(:error).with /empty body/
+        message_translator.should_not_receive(:new) # execution should short-circuit
+        expect{ subject.poll }.to_not raise_error
+      end
+    end
+
+    describe 'when a message with a nil body is encountered' do
+      let(:message) { double('message', :id => '123', :body => nil) } # not sure this can actually happen
+      it 'should log an error but not raise an exception' do
+        logger.should_receive(:error).with /nil body/
+        message_translator.should_not_receive(:new) # execution should short-circuit
+        expect{ subject.poll }.to_not raise_error
+      end
     end
 
     describe 'when the extract process fails' do

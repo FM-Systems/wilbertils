@@ -25,6 +25,7 @@ module Wilbertils
     def poll
       until do_i_shutdown? do
         @queue.poll(:poll_interval => 60, :idle_timeout => 120) do |msg|
+          next if bad_message? msg
           logger.info "received a message with id: #{msg.id}"
           METRICS.increment "message-received-#{@message_processor_class}" if defined?(METRICS)
           begin
@@ -48,6 +49,16 @@ module Wilbertils
       def now?
         yield
       end
+    end
+
+    private
+
+    def bad_message? msg
+      (logger.error "message has nil id!";     return true) unless msg.id
+      (logger.error "message has empty id!";   return true) if msg.id.empty?
+      (logger.error "message has nil body!";   return true) unless msg.body
+      (logger.error "message has empty body!"; return true) if msg.body.empty?
+      false
     end
 
   end

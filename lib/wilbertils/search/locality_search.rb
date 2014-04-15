@@ -2,9 +2,13 @@ module Wilbertils; module Search
   module LocalitySearch
 
     module ClassMethods
-      def match(locality_name, postcode, threshold=2, locality_search = Wilbertils::Search::LocalitySearcher.new)
-        postcode = "%04d" % postcode.to_i
-        throw StandardError.new("postcode or locality not valid #{postcode} or #{locality_name}") unless postcode=~/^\d{4}$/ && locality_name.length > 0
+      def match(locality_name, orig_postcode, threshold=2, locality_search = Wilbertils::Search::LocalitySearcher.new)
+        postcode = "%04d" % orig_postcode.to_i
+
+        l = Locality.find_by_locality_and_postcode locality_name, postcode
+        return l if l
+
+        throw StandardError.new("postcode or locality not valid '#{orig_postcode}' or '#{locality_name}'") unless postcode=~/^\d{4}$/ && locality_name.length > 0
 
         search = locality_search.match_closest_location(locality_name, postcode)
         if (search.max_score < threshold)
