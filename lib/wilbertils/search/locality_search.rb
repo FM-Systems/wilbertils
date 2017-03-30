@@ -8,7 +8,10 @@ module Wilbertils; module Search
         l = Locality.find_by_locality_and_postcode locality_name, postcode
         return l if l
 
-        throw StandardError.new("postcode or locality not valid '#{orig_postcode}' or '#{locality_name}'") unless postcode=~/^\d{4}$/ && locality_name.length > 0
+        unless postcode=~/^\d{4}$/ && locality_name && locality_name.length > 0
+          Rails.logger.info("postcode or locality not valid '#{orig_postcode}' or '#{locality_name}'")
+          return nil
+        end
 
         search = locality_search.match_closest_location(locality_name, postcode)
         if (search.max_score < threshold)
