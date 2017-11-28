@@ -23,9 +23,8 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake"
   spec.add_runtime_dependency "log4r", "~> 1.1.10"
   spec.add_runtime_dependency "statsd-ruby"
-  spec.add_runtime_dependency 'airbrake', '4.1.0'
-  spec.add_runtime_dependency 'sucker_punch', '1.0.2'
+  spec.add_runtime_dependency 'airbrake', '7.1.0'
+  spec.add_runtime_dependency 'sucker_punch', '2.0.4'
   spec.add_runtime_dependency 'activesupport'
 
 end
-
