@@ -3,10 +3,10 @@ module Wilbertils; module Search
 
     module ClassMethods
       def match(params)
-        case params[:country]
-          when 'Australia'
+        case params[:country].upcase
+          when 'AUSTRALIA'
             search_locality_postcode_region(params)
-          when 'New Zealand'
+          when 'NEW ZEALAND'
             search_sublocality_locality_postcode(params)
           else
             search_locality_postcode_region(params)
