@@ -17,7 +17,7 @@ module Wilbertils; module Search
         postcode = "%04d" % params[:postcode].to_i
 
         l = Locality.where(locality: params[:locality], postcode: postcode, region: params[:region], country: params[:country]).first
-        return l if (l || params[:fuzzy] == false)
+        return l if (l || !params[:fuzzy])
 
         unless postcode=~/^\d{4}$/ && params[:locality] && params[:locality].length > 0
           Rails.logger.info("postcode or locality not valid '#{params[:postcode]}' or '#{params[:locality]}'")
@@ -37,7 +37,7 @@ module Wilbertils; module Search
         postcode = "%04d" % params[:postcode].to_i
 
         l = Locality.where(sublocality: params[:sublocality], locality: params[:locality], postcode: postcode, country: params[:country]).first
-        return l if (l || params[:fuzzy] == false)
+        return l if (l || !params[:fuzzy])
 
         unless postcode=~/^\d{4}$/ && params[:locality] && params[:locality].length > 0
           Rails.logger.info("postcode or locality not valid '#{params[:postcode]}' or '#{params[:locality]}'")
