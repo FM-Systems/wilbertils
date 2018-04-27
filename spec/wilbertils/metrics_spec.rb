@@ -16,33 +16,33 @@ describe Wilbertils::Metrics do
 
     context 'when metrics are disabled' do
       let(:metrics_enabled) { 'false' }
-      it 'should return a NullMetrics class' do
-        subject.factory('test', config).should be_kind_of Wilbertils::Metrics::NullMetrics
+      it 'returns a NullMetrics class' do
+        expect(subject.factory('test', config)).to be_kind_of Wilbertils::Metrics::NullMetrics
       end
     end
 
     context 'when metrics are enabled' do
 
       before do
-        Resolv.stub(:getaddress).and_return('1.1.1.1')
-        config.should_receive(:metrics_server).and_return(metrics_server)
+        allow(Resolv).to receive(:getaddress).and_return('1.1.1.1')
+        expect(config).to receive(:metrics_server).and_return(metrics_server)
       end
 
-      it 'should resolve the statsd hostname as an ip address' do
-        Resolv.should_receive(:getaddress).with(metrics_server).and_return('1.1.1.1')
+      it 'resolves the statsd hostname as an ip address' do
+        expect(Resolv).to receive(:getaddress).with(metrics_server).and_return('1.1.1.1')
 
         subject.factory('test', config)
       end
 
-      it 'should configure statsd with the correct host and port' do
-        Statsd.should_receive(:new).with('1.1.1.1', 8125).and_return(double('statsd').as_null_object)
+      it 'configures statsd with the correct host and port' do
+        expect(Statsd).to receive(:new).with('1.1.1.1', 8125).and_return(double('statsd').as_null_object)
 
         subject.factory('test', config)
       end
 
-      it 'should configure statsd with the given namespace' do
-        Statsd.stub(:new).and_return(statsd= double('statsd'))
-        statsd.should_receive(:namespace=).with('test-namespace')
+      it 'configures statsd with the given namespace' do
+        allow(Statsd).to receive(:new).and_return(statsd= double('statsd'))
+        expect(statsd).to receive(:namespace=).with('test-namespace')
 
         subject.factory('test-namespace', config)
       end
@@ -50,11 +50,11 @@ describe Wilbertils::Metrics do
 
     context 'failed server address resolution' do
       before do
-        Resolv.stub(:getaddress).and_raise
-        config.should_receive(:metrics_server).twice().and_return(metrics_server)
+        allow(Resolv).to receive(:getaddress).and_raise
+        expect(config).to receive(:metrics_server).twice().and_return(metrics_server)
       end
-      it 'should return a NullMetrics class' do
-        subject.factory('test', config).should be_kind_of Wilbertils::Metrics::NullMetrics
+      it 'returns a NullMetrics class' do
+        expect(subject.factory('test', config)).to be_kind_of Wilbertils::Metrics::NullMetrics
       end
     end
 

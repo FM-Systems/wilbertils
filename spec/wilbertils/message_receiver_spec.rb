@@ -3,29 +3,31 @@ require 'wilbertils'
 
 describe Wilbertils::MessageReceiver do
 
-  let(:queues) { double('queues') }
-  let(:message_queue) { double('message_queue').as_null_object }
   let(:message_processor) { double('message_processor').as_null_object }
   let(:message_translator) { double('message_translator').as_null_object }
   let(:config) { double('config').as_null_object }
 
-  let(:message) { double('message', :id => '123') }
+  let(:message) { double('message', :message_id => '123') }
   let(:logger) { double.as_null_object }
+  let(:sqs_client) { FakeClient.new(message) }
 
-  class FakeQueue
+  class FakeMessages
+    def initialize message
+      @message = message
+    end
+    def messages
+      [@message]
+    end
+  end
 
-    attr_reader :message
+  class FakeClient
 
     def initialize message
       @message = message
     end
 
-    def poll(hash)
-      yield message
-    end
-
-    def exists?
-      true
+    def receive_message(hash)
+      FakeMessages.new(@message)
     end
 
   end
@@ -33,76 +35,74 @@ describe Wilbertils::MessageReceiver do
   subject { Wilbertils::MessageReceiver.new('queue_name', message_processor, message_translator, config, logger, TestShutdown.new(1)) }
 
   before do
-    Wilbertils::SQS.should_receive(:queues).and_return(queues)
-    queue = FakeQueue.new(message)
-    queues.stub(:[]).and_return(queue)
+    expect(Wilbertils::SQS).to receive(:client).and_return(sqs_client)
   end
 
   describe 'when a message is received' do
-    let(:message) { double('message', :id => '123', :body => 'somebody') }
+    let(:message) { double('message', :message_id => '123', :body => 'somebody', :receipt_handle => 'xyz') }
 
-    before do
-      message_queue.stub(:poll).and_yield(message)
-    end
-
-    it 'should translate the message using the specified message translator' do
-      message_translator.should_receive(:new).with(message).and_return instance=double
-      instance.should_receive(:translate)
+    it 'translates the message using the specified message translator' do
+      expect(message_translator).to receive(:new).with(message).and_return instance=double
+      expect(instance).to receive(:translate)
       subject.poll
     end
 
-    it 'should process the message using the specified message processor' do
-      message_translator.stub(:translate).and_return params=double
-      message_processor.should_receive(:new).with(params).and_return(instance=double('instance'))
-      instance.should_receive(:execute)
+    it 'processes the message using the specified message processor' do
+      allow(message_translator).to receive(:translate).and_return params=double
+      expect(message_processor). to receive(:new).with(params).and_return(instance=double('instance'))
+      expect(instance).to receive(:execute)
       subject.poll
     end
 
     describe 'when a message without an id is encountered' do
-      let(:message) { double('message', :id => '') }
-      it 'should log an error but not raise an exception' do
-        logger.should_receive(:error).with /empty id/
-        message_translator.should_not_receive(:new) # execution should short-circuit
+      let(:message) { double('message', :message_id => '', :receipt_handle => 'xyz') }
+      it 'logs an error but not raise an exception' do
+        expect(logger).to receive(:error).with /empty id/
+        expect(message_translator).to_not receive(:new) # execution should short-circuit
+        expect(sqs_client).to receive(:delete_message).with(queue_url: 'queue_name', receipt_handle: 'xyz')
         expect{ subject.poll }.to_not raise_error
       end
     end
 
     describe 'when a message without a nil id is encountered' do
-      let(:message) { double('message', :id => nil) } # not sure this can actually happen
-      it 'should log an error but not raise an exception' do
-        logger.should_receive(:error).with /nil id/
-        message_translator.should_not_receive(:new) # execution should short-circuit
+      let(:message) { double('message', :message_id => nil, :receipt_handle => 'xyz') } # not sure this can actually happen
+      it 'logs an error but not raise an exception' do
+        expect(logger).to receive(:error).with /nil id/
+        expect(message_translator).to_not receive(:new) # execution should short-circuit
+        expect(sqs_client).to receive(:delete_message).with(queue_url: 'queue_name', receipt_handle: 'xyz')
         expect{ subject.poll }.to_not raise_error
       end
     end
 
     describe 'when a message with an empty body is encountered' do
-      let(:message) { double('message', :id => '123', :body => '') }
-      it 'should log an error but not raise an exception' do
-        logger.should_receive(:error).with /empty body/
-        message_translator.should_not_receive(:new) # execution should short-circuit
+      let(:message) { double('message', :message_id => '123', :body => '', :receipt_handle => 'xyz') }
+      it 'logs an error but not raise an exception' do
+        expect(logger).to receive(:error).with /empty body/
+        expect(message_translator).to_not receive(:new) # execution should short-circuit
+        expect(sqs_client).to receive(:delete_message).with(queue_url: 'queue_name', receipt_handle: 'xyz')
         expect{ subject.poll }.to_not raise_error
       end
     end
 
     describe 'when a message with a nil body is encountered' do
-      let(:message) { double('message', :id => '123', :body => nil) } # not sure this can actually happen
-      it 'should log an error but not raise an exception' do
-        logger.should_receive(:error).with /nil body/
-        message_translator.should_not_receive(:new) # execution should short-circuit
+      let(:message) { double('message', :message_id => '123', :body => nil, :receipt_handle => 'xyz') } # not sure this can actually happen
+      it 'logs an error but not raise an exception' do
+        expect(logger).to receive(:error).with /nil body/
+        expect(message_translator).to_not receive(:new) # execution should short-circuit
+        expect(sqs_client).to receive(:delete_message).with(queue_url: 'queue_name', receipt_handle: 'xyz')
         expect{ subject.poll }.to_not raise_error
       end
     end
 
     describe 'when the extract process fails' do
       before do
-        message_processor.stub(:execute).and_raise()
+        allow(message_processor).to receive(:execute).and_raise()
       end
 
       subject { Wilbertils::MessageReceiver.new('queue_name', message_processor, message_translator, config, logger, TestShutdown.new(2) ) }
 
-      it 'should continue to poll' do
-        message_processor.should_receive(:new).twice()
+      it 'continues to poll' do
+        expect(message_processor).to receive(:new).twice()
         subject.poll
       end
     end
