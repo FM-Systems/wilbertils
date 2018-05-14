@@ -38,6 +38,7 @@ module Wilbertils
             @client.delete_message(queue_url: @queue_url, receipt_handle: msg.receipt_handle)
           rescue => e
             logger.error "Error: Failed to process message using #{@message_processor_class}. Reason given: #{e.message}"
+            @client.delete_message(queue_url: @queue_url, receipt_handle: msg.receipt_handle)
             rescue_with_handler e
             METRICS.increment "message-error-#{@message_processor_class}" if defined?(METRICS)
           end

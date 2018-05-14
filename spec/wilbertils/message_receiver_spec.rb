@@ -44,6 +44,7 @@ describe Wilbertils::MessageReceiver do
     it 'translates the message using the specified message translator' do
       expect(message_translator).to receive(:new).with(message).and_return instance=double
       expect(instance).to receive(:translate)
+      expect(sqs_client).to receive(:delete_message).with(queue_url: 'queue_name', receipt_handle: 'xyz')
       subject.poll
     end
 
@@ -51,6 +52,7 @@ describe Wilbertils::MessageReceiver do
       allow(message_translator).to receive(:translate).and_return params=double
       expect(message_processor). to receive(:new).with(params).and_return(instance=double('instance'))
       expect(instance).to receive(:execute)
+      expect(sqs_client).to receive(:delete_message).with(queue_url: 'queue_name', receipt_handle: 'xyz')
       subject.poll
     end
 
@@ -103,6 +105,7 @@ describe Wilbertils::MessageReceiver do
 
       it 'continues to poll' do
         expect(message_processor).to receive(:new).twice()
+        expect(sqs_client).to receive(:delete_message).with(queue_url: 'queue_name', receipt_handle: 'xyz').twice()
         subject.poll
       end
     end
