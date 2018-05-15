@@ -11,6 +11,7 @@ require "wilbertils/redis/redis"
 require "wilbertils/redis/queue"
 require "wilbertils/redis/message_receiver"
 require "wilbertils/redis/processing_queues"
+require "wilbertils/encrypt_decrypt"
 
 module Wilbertils
 end
