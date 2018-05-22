@@ -3,19 +3,21 @@ module Wilbertils; module Search
 
     module ClassMethods
       def match(params, threshold=2, locality_search = Wilbertils::Search::LocalitySearcher.new)
-        postcode = "%04d" % params[:postcode].to_i
+#        postcode = "%04d" % params[:postcode].to_i
 
-        l = Locality.where(sublocality: params[:sublocality], locality: params[:locality], postcode: postcode, region: params[:region], country: params[:country]).first
+        l = Locality.where(sublocality: params[:sublocality], locality: params[:locality], postcode: params[:postcode], region: params[:region], country: params[:country]).first
         return l if (l || !params[:fuzzy])
 
-        unless postcode=~/^\d{4}$/ && params[:locality] && params[:locality].length > 0
-          Rails.logger.info("postcode or locality not valid '#{params[:postcode]}' or '#{params[:locality]}'")
+        unless params[:locality] && params[:locality].length > 0
+          Rails.logger.info("locality not valid '#{params[:locality]}'")
           return nil
         end
 
-        search = locality_search.match_closest_location(params[:locality], postcode)
+        search = locality_search.match_closest_location(params)
         if (search.max_score < threshold)
-          search = locality_search.match_closest_location(locality_search.find_best_word(params[:locality]), postcode)
+          modified_params = params.dup
+          modified_params[:locality] = locality_search.find_best_word(params[:locality])
+          search = locality_search.match_closest_location(modified_params)
         end
         result = search.results.first
         Locality.find(result[:id]) unless search.max_score < threshold || result[:id].nil?
@@ -28,17 +30,26 @@ module Wilbertils; module Search
 
   end
 
-  # fuzzy matching has caused issues with wrong matches, its value is questionable
+  # warning: fuzzy matching has caused issues with wrong matches
   class LocalitySearcher
 
     def initialize(stop_words =%w(mount sands flat beach brook west east north south island river saint))
       @stop_words = stop_words
     end
 
-    def match_closest_location (locality, postcode)
+    # TODO: region and locality should boost score
+    # fuzzy matching scoring is strange - eg. 'SWAN BA' does not match 'SWAN BAY' for any score, but 'SWAN B' gets close to 1.0
+    # this is truncated by find_best_word which reduces 'SWAN xxx' to 'SWAN'
+    def match_closest_location(params)
       Locality.search do
-        query { fuzzy :locality, locality.downcase }
-        filter :term, { postcode: postcode}
+        query {
+          boolean {
+            should { fuzzy :sublocality, params[:sublocality]&.downcase }
+            should { fuzzy :locality, params[:locality].downcase }
+          }
+        }
+        filter :term, { postcode: params[:postcode].downcase }
+        filter :term, { country: params[:country].downcase }
       end
     end
 
