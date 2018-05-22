@@ -40,6 +40,7 @@ module Wilbertils; module Search
     # TODO: region and locality should boost score
     # fuzzy matching scoring is strange - eg. 'SWAN BA' does not match 'SWAN BAY' for any score, but 'SWAN B' gets close to 1.0
     # this is truncated by find_best_word which reduces 'SWAN xxx' to 'SWAN'
+    # locality search against multiple fields (fuzzy_like_this) is a future option
     def match_closest_location(params)
       Locality.search do
         query {
