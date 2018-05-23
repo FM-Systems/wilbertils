@@ -6,7 +6,7 @@ module Wilbertils
     class << self
 
       def encrypt plain_value
-        cipher = OpenSSL::Cipher::Cipher.new('DES-EDE3-CBC').encrypt
+        cipher = OpenSSL::Cipher.new('DES-EDE3-CBC').encrypt
         cipher.key = Digest::SHA1.hexdigest KEY
         s = cipher.update(plain_value) + cipher.final
 
@@ -14,7 +14,7 @@ module Wilbertils
       end
 
       def decrypt encoded_value
-        cipher = OpenSSL::Cipher::Cipher.new('DES-EDE3-CBC').decrypt
+        cipher = OpenSSL::Cipher.new('DES-EDE3-CBC').decrypt
         cipher.key = Digest::SHA1.hexdigest KEY
         s = [encoded_value].pack("H*").unpack("C*").pack("c*")
 
