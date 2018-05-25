@@ -29,4 +29,3 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'activesupport'
   spec.add_runtime_dependency 'redis-queue', '0.1.0'
 end
-
