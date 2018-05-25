@@ -46,11 +46,11 @@ module Wilbertils; module Search
         query {
           boolean {
             should { fuzzy :sublocality, params[:sublocality]&.downcase }
-            should { fuzzy :locality, params[:locality].downcase }
+            should { fuzzy :locality, params[:locality]&.downcase }
           }
         }
-        filter :term, { postcode: params[:postcode].downcase }
-        filter :term, { country: params[:country].downcase }
+        filter :term, { postcode: params[:postcode]&.downcase }
+        filter :term, { country: params[:country]&.downcase }
       end
     end
 
