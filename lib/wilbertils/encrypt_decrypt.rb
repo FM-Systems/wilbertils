@@ -1,7 +1,8 @@
+require 'dotenv/load'
 module Wilbertils
   class EncryptDecrypt
 
-    KEY = 'AF0G8o*EBZb0%Ue4#2lDK3SIipx7f1F48L12^yrZGYF#%biU82W!I#jW&!*m0@80M6HXg4pxVq5014FPT@6&x^h02074LG4hW7Qy'
+    KEY = ENV['URL_ENCRYPT_DECYRPT_KEY']
 
     class << self
 
