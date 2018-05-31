@@ -7,6 +7,7 @@ require "wilbertils/exception_handler"
 require "wilbertils/message_receiver"
 require "wilbertils/airbrake_delivery_worker"
 require "wilbertils/metrics"
+require "wilbertils/encrypt_decrypt"
 
 module Wilbertils
 end
