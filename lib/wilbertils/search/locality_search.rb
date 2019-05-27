@@ -2,7 +2,7 @@ module Wilbertils; module Search
   module LocalitySearch
 
     module ClassMethods
-      def match(params, threshold=2, locality_search = Wilbertils::Search::LocalitySearcher.new)
+      def match(params, threshold=5, locality_search = Wilbertils::Search::LocalitySearcher.new)
 #        postcode = "%04d" % params[:postcode].to_i
 
         l = Locality.where(sublocality: params[:sublocality], locality: params[:locality], postcode: params[:postcode], region: params[:region], country: params[:country]).first
@@ -16,6 +16,7 @@ module Wilbertils; module Search
         search = locality_search.match_closest_location(params)
         if (search.max_score < threshold)
           modified_params = params.dup
+          modified_params[:sublocality] = locality_search.find_best_word(params[:sublocality])
           modified_params[:locality] = locality_search.find_best_word(params[:locality])
           search = locality_search.match_closest_location(modified_params)
         end
