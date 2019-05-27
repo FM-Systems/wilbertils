@@ -56,6 +56,7 @@ module Wilbertils; module Search
     end
 
     def find_best_word (locality)
+      return if locality.nil?
       words = locality.split(' ')
       words.reject! { |w| @stop_words.include?(w) } unless words.length == 1
       words.max do |wordA, wordB|
