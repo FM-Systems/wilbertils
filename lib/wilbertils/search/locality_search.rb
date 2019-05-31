@@ -3,9 +3,11 @@ module Wilbertils; module Search
 
     module ClassMethods
       def match(params, threshold=5, locality_search = Wilbertils::Search::LocalitySearcher.new)
-#        postcode = "%04d" % params[:postcode].to_i
 
-        l = Locality.where(sublocality: params[:sublocality], locality: params[:locality], postcode: params[:postcode], region: params[:region], country: params[:country]).first
+        # for sublocality and locality, try transposing swap words
+        transposed_sublocality = locality_search.transpose_words(params[:sublocality])
+        transposed_locality = locality_search.transpose_words(params[:locality])
+        l = Locality.where(sublocality: [params[:sublocality], transposed_sublocality], locality: [params[:locality], transposed_locality], postcode: params[:postcode], region: params[:region], country: params[:country]).first
         return l if (l || !params[:fuzzy])
 
         unless params[:locality] && params[:locality].length > 0
@@ -62,6 +64,21 @@ module Wilbertils; module Search
       words.max do |wordA, wordB|
         wordA.length <=> wordB.length
       end
+    end
+
+    SWAP_WORDS = %w(north east south west)
+
+    def transpose_words(locality)
+      return if locality.nil?
+
+      words = locality.split(' ')
+      return locality if words.length < 2
+      SWAP_WORDS.include?(words[0].downcase) || SWAP_WORDS.include?(words[-1].downcase) ? transpose(words) : locality
+    end
+
+    def transpose(words)
+      words[0], words[-1] = words[-1], words[0]
+      words.join(' ')
     end
 
   end
