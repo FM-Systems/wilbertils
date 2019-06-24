@@ -2,7 +2,7 @@ module Wilbertils; module Search
   module LocalitySearch
 
     module ClassMethods
-      def match(params, threshold=5, locality_search = Wilbertils::Search::LocalitySearcher.new)
+      def match(params, threshold=2, locality_search = Wilbertils::Search::LocalitySearcher.new)
 
         # for sublocality and locality, try transposing swap words
         transposed_sublocality = locality_search.transpose_words(params[:sublocality])
