@@ -13,6 +13,7 @@ require "wilbertils/redis/queue"
 require "wilbertils/redis/message_receiver"
 require "wilbertils/redis/processing_queues"
 require "wilbertils/encrypt_decrypt"
+require "wilbertils/ftp_paths"
 
 module Wilbertils
 end
