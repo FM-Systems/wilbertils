@@ -9,6 +9,7 @@ require "wilbertils/message_receiver"
 require "wilbertils/airbrake_delivery_worker"
 require "wilbertils/metrics"
 require "wilbertils/encrypt_decrypt"
+require "wilbertils/ftp_paths"
 
 module Wilbertils
 end
