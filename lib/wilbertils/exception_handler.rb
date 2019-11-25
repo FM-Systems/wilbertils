@@ -18,7 +18,7 @@ module Wilbertils
 
       return if !ENV['ENVIRONMENT_NAME']
 
-      Airbrake.notify_or_ignore(
+      Airbrake.notify(
         exception,
         :cgi_data => ENV.to_hash
       )
