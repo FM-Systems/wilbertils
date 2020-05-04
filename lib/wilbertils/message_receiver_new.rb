@@ -8,13 +8,14 @@ module Wilbertils
 
     attr_reader :logger
 
-    def initialize queue_name, message_processor_class, message_translator_class, config, logger, shutdown = Shutdown.new
+    def initialize queue_name, message_processor_class, message_translator_class, config, logger, visibility_timeout = 120, shutdown = Shutdown.new
       @message_translator_class = message_translator_class
       @message_processor_class = message_processor_class
       @client = Wilbertils::SQS.client(config)
       @queue_url = queue_name
       @shutdown = shutdown
       @logger = logger
+      @visibility_timeout = visibility_timeout
       raise unless @client
     end
 
@@ -25,7 +26,7 @@ module Wilbertils
 
     def poll
       until do_i_shutdown? do
-        @client.receive_message(queue_url: @queue_url, wait_time_seconds: 20, visibility_timeout: 120).messages.each do |msg|
+        @client.receive_message(queue_url: @queue_url, wait_time_seconds: 20, visibility_timeout: @visibility_timeout).messages.each do |msg|
           if bad_message? msg
             @client.delete_message(queue_url: @queue_url, receipt_handle: msg.receipt_handle)
             next
