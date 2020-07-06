@@ -1,9 +1,9 @@
 module Wilbertils::Redis
   module Redis
-    extend self    
+    extend self
     
     def client config
-      @redis ||= ::Redis.new(:url => "redis://#{config.redis_url}")    
+      @redis ||= ::Redis.new(:url => "redis://#{config.redis_url}")
     end
     
   end

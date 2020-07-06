@@ -12,8 +12,8 @@ module Wilbertils::Redis
     def monitor
       # can use scan to get the list of queues if we start using readis like crazy and have keys in the range of hundreds of thousands
       @redis.keys("#{@prefix}_*_processing").each do |processing_queue|
-        next if (@redis.llen processing_queue) == 0        
-        @redis.lrange(processing_queue, 0, -1).each { |message| move_message_if_old message, processing_queue }        
+        next if (@redis.llen processing_queue) == 0
+        @redis.lrange(processing_queue, 0, -1).each { |message| move_message_if_old message, processing_queue }
       end
       
     end
