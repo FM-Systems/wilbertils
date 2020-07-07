@@ -3,7 +3,7 @@ require 'redis-queue'
 module Wilbertils::Redis
   module Queue
     extend self
-    include Wilbertils::Redis::Redis
+    extend Wilbertils::Redis::Redis
     
     @queues = {}
 
