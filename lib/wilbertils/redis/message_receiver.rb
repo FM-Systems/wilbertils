@@ -10,7 +10,7 @@ module Wilbertils::Redis
     def initialize queue_name, message_processor_class, message_translator_class, config, logger, shutdown = Shutdown.new
       @message_translator_class = message_translator_class
       @message_processor_class = message_processor_class
-      @queue = Wilbertils::Redis::Queue.queue(config, queue_name)
+      @queue = Wilbertils::Redis::Queue.queue(queue_name)
       @queue_name = queue_name
       @shutdown = shutdown
       @logger = logger
@@ -23,6 +23,7 @@ module Wilbertils::Redis
 
     def poll
       until do_i_shutdown? do
+        ProcessingQueues.monitor
         @queue.process(false, 20) do |msg|
           next if bad_message? msg
           begin
@@ -30,7 +31,7 @@ module Wilbertils::Redis
             @message_processor_class.new(message_body).execute
           rescue => e
             logger.error "Error: Failed to process message using #{@message_processor_class}. Reason given: #{e.message}"
-            # rescue_with_handler e
+            rescue_with_handler e
             METRICS.increment "message-error-#{@message_processor_class}" if defined?(METRICS)
           end
         end

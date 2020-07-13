@@ -1,27 +1,24 @@
 require 'redis-queue'
 
-module Wilbertils::Redis
+module Wilbertils; module Redis
   module Queue
     extend self
-    extend Wilbertils::Redis::Redis
     
     @queues = {}
 
-    def queue config, queue_name
-      client config # establish connection to redis server
+    def queue queue_name
       get_queue queue_name
     end
     
-    def send_message config, queue_name, msg
-      client config # establish connection to redis server
-      get_queue(queue_name).push({ body: msg, meta_data: { received_time: Time.now, queue_name: queue_name } }.to_json)
+    def send_message queue_name, msg
+      get_queue(queue_name).push(msg)
     end
     
     private
     
     def get_queue queue_name
-      @queues[queue_name] = @queues[queue_name].nil? ? Redis::Queue.new(queue_name, "#{queue_name}_processing",  :redis => @redis) : @queues[queue_name]
+      @queues[queue_name] = @queues[queue_name].nil? ? ::Redis::Queue.new(queue_name, "#{queue_name}_processing") : @queues[queue_name]
     end
 
   end
-end
+end; end
