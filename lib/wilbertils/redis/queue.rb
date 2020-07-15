@@ -8,13 +8,13 @@ module Wilbertils; module Redis
     @queues = {}
 
     def queue config, queue_name
-      client config # establish connection to redis server
-      get_queue queue_name
+      redis = client config # establish connection to redis server
+      get_queue(queue_name, redis)
     end
     
     def send_message config, queue_name, message
-      client config # establish connection to redis server
-      get_queue(queue_name).push(message_body(message, queue_name))
+      redis = client config # establish connection to redis server
+      get_queue(queue_name, redis).push(message_body(message, queue_name))
     end
     
     private
@@ -24,8 +24,8 @@ module Wilbertils; module Redis
       json_message.merge!(queue_name: queue_name).to_json
     end
     
-    def get_queue queue_name
-      @queues[queue_name] = @queues[queue_name].nil? ? ::Redis::Queue.new(queue_name, "#{queue_name}_processing") : @queues[queue_name]
+    def get_queue queue_name, redis
+      @queues[queue_name] = @queues[queue_name].nil? ? ::Redis::Queue.new(queue_name, "#{queue_name}_processing", :redis => redis) : @queues[queue_name]
     end
 
   end
