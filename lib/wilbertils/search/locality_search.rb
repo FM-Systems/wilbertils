@@ -2,7 +2,7 @@ module Wilbertils; module Search
   module LocalitySearch
 
     module ClassMethods
-      def match(params, threshold=2, locality_search = Wilbertils::Search::LocalitySearcher.new)
+      def match(params, threshold=100, locality_search = Wilbertils::Search::LocalitySearcher.new)
 
         # for sublocality and locality, try transposing swap words
         transposed_sublocality = locality_search.transpose_words(params[:sublocality])
@@ -16,14 +16,8 @@ module Wilbertils; module Search
         end
 
         search = locality_search.match_closest_location(params)
-        if (search.max_score < threshold)
-          modified_params = params.dup
-          modified_params[:sublocality] = locality_search.find_best_word(params[:sublocality])
-          modified_params[:locality] = locality_search.find_best_word(params[:locality])
-          search = locality_search.match_closest_location(modified_params)
-        end
         result = search.results.first
-        Locality.find(result[:id]) unless search.max_score < threshold || result[:id].nil?
+        (search.response["hits"]["max_score"] < threshold || result[:id].nil?) ? [] : Locality.find(result[:id])
       end
     end
 
@@ -40,21 +34,16 @@ module Wilbertils; module Search
       @stop_words = stop_words
     end
 
-    # TODO: region and locality should boost score
-    # fuzzy matching scoring is strange - eg. 'SWAN BA' does not match 'SWAN BAY' for any score, but 'SWAN B' gets close to 1.0
-    # this is truncated by find_best_word which reduces 'SWAN xxx' to 'SWAN'
-    # locality search against multiple fields (fuzzy_like_this) is a future option
     def match_closest_location(params)
-      Locality.search do
-        query {
-          boolean {
-            should { fuzzy :sublocality, params[:sublocality]&.downcase }
-            should { fuzzy :locality, params[:locality]&.downcase }
-          }
-        }
-        filter :term, { postcode: params[:postcode]&.downcase }
-        filter :term, { country: params[:country]&.downcase }
-      end
+      Locality.search("#{params[:sublocality]} #{params[:locality]} #{params[:postcode]} #{params[:region]}", where:
+                                {
+                                    country: params[:country].upcase
+                                },
+                      fields:   [:full_locality],
+                      operator: "OR",
+                      limit:    10,
+                      order:    {_score: :desc},
+                      load:     false)
     end
 
     def find_best_word (locality)
