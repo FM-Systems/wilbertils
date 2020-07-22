@@ -21,7 +21,7 @@ module Wilbertils; module Redis
     
     def message_body message, queue_name
       json_message = JSON.parse(message, symbolize_names: true)
-      json_message.merge!(queue_name: queue_name).to_json
+      json_message.merge!(queue_name: queue_name, message_first_received_time: Time.now).to_json
     end
     
     def get_queue queue_name, redis

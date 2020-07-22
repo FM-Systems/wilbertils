@@ -24,12 +24,8 @@ module Wilbertils::Redis
     
     def move_message_if_old message, processing_queue
       json_message = JSON.parse(message, symbolize_names: true)
-      json_message[:message_first_received_time] = Time.now unless json_message[:message_first_received_time]
-      if !json_message[:message_retried_at]
-        json_message[:message_retried_at] = Time.now
-        redis.lrem(processing_queue, 0, message)
-        redis.lpush(processing_queue, json_message.to_json)
-      elsif Time.now - Time.parse(json_message[:message_retried_at]) > 2.minutes
+      json_message[:message_retried_at] = json_message[:message_first_received_time] unless json[:message_retried_at]
+      if Time.now - Time.parse(json_message[:message_retried_at]) > 2.minutes
         json_message[:message_retried_at] = Time.now
         redis.lpush(json_message[:queue_name], json_message.to_json)
         redis.lrem(processing_queue, 0, message)
