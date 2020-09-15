@@ -17,7 +17,7 @@ module Wilbertils; module Search
 
         search = locality_search.match_closest_location(params)
         result = search.results.first
-        (search.response["hits"]["max_score"] < threshold || result[:id].nil?) ? [] : Locality.find(result[:id])
+        Locality.find(result[:id]) unless (search.response["hits"]["max_score"] < threshold || result[:id].nil?)
       end
     end
 
