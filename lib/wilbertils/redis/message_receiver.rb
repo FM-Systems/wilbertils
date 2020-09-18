@@ -24,7 +24,7 @@ module Wilbertils::Redis
 
     def poll
       until do_i_shutdown? do
-        @processing_queue.monitor
+        @processing_queue.monitor queue_name
         @queue.process(false, 20) do |msg|
           next if bad_message? msg
           begin
