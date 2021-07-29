@@ -54,8 +54,8 @@ module Wilbertils::Redis
     private
 
     def bad_message? msg
-      (logger.error "message is nil!";   return true) if msg.nil?
-      (logger.error "message is empty!"; return true) if msg.empty?
+      (logger.info "message is nil!";   return true) if msg.nil?
+      (logger.info "message is empty!"; return true) if msg.empty?
       false
     end
 
