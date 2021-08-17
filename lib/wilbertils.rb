@@ -16,6 +16,7 @@ require "wilbertils/redis/message_receiver"
 require "wilbertils/redis/processing_queues"
 require "wilbertils/encrypt_decrypt"
 require "wilbertils/ftp_paths"
+require "wilbertils/authorization/oauth2"
 
 module Wilbertils
 end
