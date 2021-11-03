@@ -88,12 +88,16 @@ module Wilbertils::Authorization
         end
       end
 
+      def token_key
+        "token:#{@@params[:token_for]}:#{@@params[:body][:client_id]}"
+      end
+
       def store_token response
-        redis.set("token:#{@@params[:token_for]}", response.merge(created_at: Time.now).to_json)
+        redis.set(token_key, response.merge(created_at: Time.now).to_json)
       end
 
       def retreive_access_token_from_redis
-        token = redis.get("token:#{@@params[:token_for]}")
+        token = redis.get(token_key)
         JSON.parse(token, symbolize_names: true) if token
       end
 
