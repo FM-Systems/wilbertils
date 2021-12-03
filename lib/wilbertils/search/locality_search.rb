@@ -2,7 +2,7 @@ module Wilbertils; module Search
   module LocalitySearch
 
     module ClassMethods
-      def match(params, threshold=100, locality_search = Wilbertils::Search::LocalitySearcher.new)
+      def match(params, threshold=10, locality_search = Wilbertils::Search::LocalitySearcher.new)
 
         # for sublocality and locality, try transposing swap words
         transposed_sublocality = locality_search.transpose_words(params[:sublocality])
@@ -35,8 +35,9 @@ module Wilbertils; module Search
     end
 
     def match_closest_location(params)
-      Locality.search("#{params[:sublocality]} #{params[:locality]} #{params[:postcode]} #{params[:region]}", where:
+      Locality.search([params[:sublocality], params[:locality], params[:region]].join(" "), where:
                                 {
+                                    postcode: params[:postcode],
                                     country: params[:country].upcase
                                 },
                       fields:   [:full_locality],
