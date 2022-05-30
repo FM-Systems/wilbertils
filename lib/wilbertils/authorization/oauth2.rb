@@ -25,18 +25,22 @@ module Wilbertils::Authorization
 
       def request_access_token
         begin
-          response = JSON.parse(RestClient.post(token_url, token_request_body, token_request_headers), symbolize_names: true)
+          response = JSON.parse(RestClient.post(token_url + query_string, token_request_body, token_request_headers), symbolize_names: true)
           store_token(response)
           response[token_name]
         rescue => e
           logger.error "Failed to get access token for #{@@params[:token_for]}; #{e.message}"
-          logger.error e.backtrace
+          logger.error e.backtrace.join("\n")
           raise
         end
       end
 
-      def token_request_body        
-        @@params[:token_request_body] || { :grant_type => grant_type }.merge(body)
+      def token_request_body
+        if @@params[:grant_type].to_sym == :client_credentials_query_string
+          nil
+        else
+          @@params[:token_request_body] || { :grant_type => grant_type }.merge(body)
+        end
       end
 
       def token_request_headers
@@ -57,7 +61,15 @@ module Wilbertils::Authorization
         when :password, :client_credentials_body
           @@params[:body]
         else
-          {}
+          nil
+        end
+      end
+
+      def query_string
+        if @@params[:grant_type].to_sym == :client_credentials_query_string
+          "?grant_type=client_credentials&client_id=#{@@params[:body][:client_id]}&client_secret=#{@@params[:body][:client_secret]}"
+        else
+          ''
         end
       end
 
