@@ -61,7 +61,7 @@ module Wilbertils::Authorization
         when :password, :client_credentials_body
           @@params[:body]
         else
-          nil
+          {}
         end
       end
 
