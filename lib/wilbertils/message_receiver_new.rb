@@ -61,10 +61,10 @@ module Wilbertils
     private
 
     def bad_message? msg
-      (logger.info "message has nil id!";     return true) unless msg.message_id
-      (logger.info "message has empty id!";   return true) if msg.message_id.empty?
-      (logger.info "message has nil body!";   return true) unless msg.body
-      (logger.info "message has empty body!"; return true) if msg.body.empty?
+      (logger.error "message has nil id!";     return true) unless msg.message_id
+      (logger.error "message has empty id!";   return true) if msg.message_id.empty?
+      (logger.error "message has nil body!";   return true) unless msg.body
+      (logger.error "message has empty body!"; return true) if msg.body.empty?
       false
     end
 

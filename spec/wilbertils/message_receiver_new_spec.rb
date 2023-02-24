@@ -32,7 +32,7 @@ describe Wilbertils::MessageReceiverNew do
 
   end
 
-  subject { Wilbertils::MessageReceiverNew.new('queue_name', message_processor, message_translator, config, logger, TestShutdown.new(1)) }
+  subject { Wilbertils::MessageReceiverNew.new('queue_name', message_processor, message_translator, config, logger, 120, TestShutdown.new(1)) }
 
   before do
     expect(Wilbertils::SQS).to receive(:client).and_return(sqs_client)
@@ -109,7 +109,7 @@ describe Wilbertils::MessageReceiverNew do
         allow(message_processor).to receive(:execute).and_raise()
       end
 
-      subject { Wilbertils::MessageReceiverNew.new('queue_name', message_processor, message_translator, config, logger, TestShutdown.new(2) ) }
+      subject { Wilbertils::MessageReceiverNew.new('queue_name', message_processor, message_translator, config, logger, 120, TestShutdown.new(2) ) }
 
       it 'continues to poll' do
         expect(message_processor).to receive(:new).twice()
