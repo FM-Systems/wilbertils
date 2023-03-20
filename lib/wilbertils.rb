@@ -6,6 +6,7 @@ require "wilbertils/sqs"
 require "wilbertils/ftp_paths"
 require "wilbertils/file_archiver"
 require "wilbertils/exception_handler"
+require "wilbertils/error_handler"
 require "wilbertils/message_receiver"
 require "wilbertils/message_receiver_new"
 require "wilbertils/airbrake_delivery_worker"
@@ -17,6 +18,7 @@ require "wilbertils/redis/processing_queues"
 require "wilbertils/encrypt_decrypt"
 require "wilbertils/ftp_paths"
 require "wilbertils/authorization/oauth2"
+require "wilbertils/logger"
 
 module Wilbertils
 end

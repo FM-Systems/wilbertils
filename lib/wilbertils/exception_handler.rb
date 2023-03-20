@@ -18,10 +18,8 @@ module Wilbertils
 
       return if !ENV['ENVIRONMENT_NAME']
 
-      Airbrake.notify(
-        exception,
-        :cgi_data => ENV.to_hash
-      )
+      NewRelic::Agent.notice_error(exception)
+      Airbrake.notify(exception)
     end
 
   end
