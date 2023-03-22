@@ -8,7 +8,7 @@ module Wilbertils
           l
         else
           # This logger is just a wrapper around Logger that sets a NewRelic JSON decorator
-          NewRelic::Agent::Logging::DecoratingLogger.new("#{config.environment}")
+          NewRelic::Agent::Logging::DecoratingLogger.new("log/#{config.environment}.log")
         end
       end
     end
