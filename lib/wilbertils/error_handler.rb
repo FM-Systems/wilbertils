@@ -7,11 +7,18 @@ module Wilbertils
     include ActiveSupport::Rescuable
 
     included do
-      rescue_from StandardError, :with => :rescue_error
+      rescue_from StandardError, :with => :rescue_standard_error
+      rescue_from ActionController::InvalidAuthenticityToken, :with => :rescue_unauthorized_error
     end
 
-    def rescue_error(error, **options)
-      self.class.rescue_error(error, **options)
+    def rescue_unauthorized_error(error, **options)
+      Wilbertils::ErrorHandler.rescue_error(error, **options)
+      render json: { error_message: error.message }, status: :unauthorized if defined?(render)
+    end
+
+    def rescue_standard_error(error, **options)
+      Wilbertils::ErrorHandler.rescue_error(error, **options)
+      render json: { error_message: error.message }, status: :internal_server_error if defined?(render)
     end
 
     def self.rescue_error(error, **options)
