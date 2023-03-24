@@ -1,3 +1,6 @@
+require 'active_support'
+require 'newrelic_rpm'
+
 module Wilbertils
   class Logging
     class << self
