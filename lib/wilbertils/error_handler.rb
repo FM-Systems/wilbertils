@@ -7,18 +7,21 @@ module Wilbertils
     include ActiveSupport::Rescuable
 
     included do
-      rescue_from StandardError, :with => :rescue_standard_error
-      rescue_from ActionController::InvalidAuthenticityToken, :with => :rescue_unauthorized_error
+      rescue_from(StandardError)                               { |e| rescue_error(e, error_code: :unhandled,      status: :internal_server_error) }
+      rescue_from(ActionController::InvalidAuthenticityToken)  { |e| rescue_error(e, error_code: :unauthorized,   status: :unauthorized) }
+      rescue_from(ActiveRecord::StaleObjectError)              { |e| rescue_error(e, error_code: :stale,          status: :internal_server_error) }
+      rescue_from(ActiveRecord::RecordNotFound)                { |e| rescue_error(e, error_code: :missing_record, status: :not_found) }
     end
 
-    def rescue_unauthorized_error(error, **options)
+    def rescue_error(error, **options)
       Wilbertils::ErrorHandler.rescue_error(error, **options)
-      render json: { error_message: error.message }, status: :unauthorized if defined?(render)
+      render_error(error, options[:error_code], options[:status]) unless options[:render_error] == false
     end
 
-    def rescue_standard_error(error, **options)
-      Wilbertils::ErrorHandler.rescue_error(error, **options)
-      render json: { error_message: error.message }, status: :internal_server_error if defined?(render)
+    def render_error error, code, status
+      return unless defined?(render)
+      render json: { errors: [ { message: error.message, error_code: code || :unhandled } ] },
+        status: status || :internal_server_error
     end
 
     def self.rescue_error(error, **options)
