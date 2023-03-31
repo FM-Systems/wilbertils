@@ -25,7 +25,7 @@ module Wilbertils::Authorization
 
       def request_access_token
         begin
-          response = JSON.parse(RestClient.post(token_url + query_string, token_request_body, token_request_headers), symbolize_names: true)
+          response = JSON.parse(rest_client_resource(token_url + query_string).post(token_request_body, token_request_headers), symbolize_names: true)
           store_token(response)
           response[token_name]
         rescue => e
@@ -85,12 +85,11 @@ module Wilbertils::Authorization
       def refresh_token token
         return unless token[:refresh_token]
         begin
-          response = JSON.parse(RestClient.post(token_url, 
-            {
-              :grant_type => :refresh_token,
-              :refresh_token => token[:refresh_token]
-            }.merge(body)
-           ), symbolize_names: true)
+          payload = {
+            :grant_type => :refresh_token,
+            :refresh_token => token[:refresh_token]
+          }.merge(body)
+          response = JSON.parse(rest_client_resource(token_url).post(payload), symbolize_names: true)
           store_token(response)
           response
         rescue => e
@@ -124,6 +123,14 @@ module Wilbertils::Authorization
 
       def logger
         @@params[:logger]
+      end
+
+      def rest_client_resource url
+        RestClient::Resource.new(url, timeout: timeout)
+      end
+
+      def timeout
+        (@@params[:timeout].is_a?(Integer) ? @@params[:timeout] : ENV.fetch('REST_CLIENT_DEFAULT_TIMEOUT'){ 10 })
       end
 
     end
