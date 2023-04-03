@@ -15,8 +15,13 @@ module Wilbertils::Authorization
         begin
           token = retreive_access_token_from_redis
           token = refresh_token(token) if expired?(token)
-          return token[token_name] if token
-          request_access_token
+          if token
+            logger.info 'Using existing oauth token'
+            token[token_name]
+          else
+            logger.info 'Requesting new oauth token'
+            request_access_token
+          end
         rescue => e
           logger.error e.message
           logger.error e.backtrace
