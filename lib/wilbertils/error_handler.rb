@@ -1,6 +1,10 @@
 require 'active_support/concern'
 require 'active_support/rescuable'
 
+# Active Record is not a dependency so might not be available.
+require 'active_record/errors' rescue nil
+require 'active_record/validations' rescue nil
+
 module Wilbertils
   module ErrorHandler
     extend ActiveSupport::Concern
@@ -9,9 +13,13 @@ module Wilbertils
     included do
       rescue_from(StandardError)                               { |e| rescue_error(e, error_code: :unhandled,      status: :internal_server_error) }
       rescue_from(ActionController::InvalidAuthenticityToken)  { |e| rescue_error(e, error_code: :unauthorized,   status: :unauthorized) }
-      rescue_from(ActiveRecord::StaleObjectError)              { |e| rescue_error(e, error_code: :stale,          status: :internal_server_error) }
-      rescue_from(ActiveRecord::RecordNotFound)                { |e| rescue_error(e, error_code: :missing_record, status: :not_found) }
-      rescue_from(ActiveRecord::RecordInvalid)                 { |e| rescue_invalid_record(e) }
+
+      # Active Record is not a dependency so might not be available.
+      if defined?(ActiveRecord)
+        rescue_from(ActiveRecord::StaleObjectError)              { |e| rescue_error(e, error_code: :stale,          status: :internal_server_error) }
+        rescue_from(ActiveRecord::RecordNotFound)                { |e| rescue_error(e, error_code: :missing_record, status: :not_found) }
+        rescue_from(ActiveRecord::RecordInvalid)                 { |e| rescue_invalid_record(e) }
+      end
     end
 
     def rescue_error(error, **options)
