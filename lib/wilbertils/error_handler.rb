@@ -5,14 +5,18 @@ require 'active_support/rescuable'
 require 'active_record/errors' rescue nil
 require 'active_record/validations' rescue nil
 
+# Used to raise errors without sending Airbrake or New Relic notifications.
+class SilentError < StandardError; end
+
 module Wilbertils
   module ErrorHandler
     extend ActiveSupport::Concern
     include ActiveSupport::Rescuable
 
     included do
-      rescue_from(StandardError)                               { |e| rescue_error(e, error_code: :unhandled,      status: :internal_server_error) }
-      rescue_from(ActionController::InvalidAuthenticityToken)  { |e| rescue_error(e, error_code: :unauthorized,   status: :unauthorized) }
+      rescue_from(StandardError)                               { |e| rescue_error(e, error_code: :unhandled,    status: :internal_server_error) }
+      rescue_from(SilentError)                                 { |e| rescue_error(e, error_code: :silenced,     status: :bad_request) }
+      rescue_from(ActionController::InvalidAuthenticityToken)  { |e| rescue_error(e, error_code: :unauthorized, status: :unauthorized) }
 
       # Active Record is not a dependency so might not be available.
       if defined?(ActiveRecord)
@@ -46,8 +50,8 @@ module Wilbertils
       log.error "ErrorHandler: #{error.class} #{error.message}"
       log.error error.backtrace.join("\n")
 
-      NewRelic::Agent.notice_error(error, options)
-      Airbrake.notify(error, options)
+      NewRelic::Agent.notice_error(error, options) unless options[:error_code] == :silenced
+      Airbrake.notify(error, options) unless options[:error_code] == :silenced
     end
 
   end
