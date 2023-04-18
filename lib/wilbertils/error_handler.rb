@@ -14,8 +14,11 @@ module Wilbertils
       rescue_from(SilentError)                                 { |e| rescue_error(e, error_code: :silenced,     status: :bad_request) }
 
       # Wilbertils is used in non rails applications so check that rails is present for rails specific errors.
-      if defined?(Rails)
+      if defined?(ActionController)
         rescue_from(ActionController::InvalidAuthenticityToken)  { |e| rescue_error(e, error_code: :unauthorized, status: :unauthorized) }
+      end
+
+      if defined?(ActiveRecord)
         rescue_from(ActiveRecord::StaleObjectError)              { |e| rescue_error(e, error_code: :stale,          status: :internal_server_error) }
         rescue_from(ActiveRecord::RecordNotFound)                { |e| rescue_error(e, error_code: :missing_record, status: :not_found) }
         rescue_from(ActiveRecord::RecordInvalid)                 { |e| rescue_invalid_record(e) }
