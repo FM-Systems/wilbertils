@@ -49,8 +49,8 @@ module Wilbertils
       log.error "ErrorHandler: #{error.class} #{error.message}"
       log.error error.backtrace.join("\n")
 
-      NewRelic::Agent.notice_error(error, options) unless options[:error_code] == :silenced
-      Airbrake.notify(error, options) unless options[:error_code] == :silenced
+      NewRelic::Agent.notice_error(error, options) unless options[:error_code] == :silenced || error.is_a?(SilentError)
+      Airbrake.notify(error, options) unless options[:error_code] == :silenced || error.is_a?(SilentError)
     end
 
   end
