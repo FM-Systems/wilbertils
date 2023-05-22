@@ -52,6 +52,9 @@ module Wilbertils::Authorization
         case @@params[:grant_type].to_sym
         when :client_credentials
           { Authorization: "Basic #{Base64.strict_encode64("#{@@params[:body][:client_id]}:#{@@params[:body][:client_secret]}")}" }
+        when :password_credentials
+          {"Content-Type": 'application/x-www-form-urlencoded',
+           Authorization: "Basic #{Base64.strict_encode64("#{@@params[:body][:client_id]}:#{@@params[:body][:client_secret]}")}" }
         else 
           {}
         end.merge(@@params[:headers] || {})
@@ -65,6 +68,14 @@ module Wilbertils::Authorization
         case @@params[:grant_type].to_sym
         when :password, :client_credentials_body
           @@params[:body]
+        when :password_credentials
+          @@params[:body]
+          {
+            grant_type: 'password',
+            scope: @@params[:scope],
+            username: @@params[:body][:username],
+            password: @@params[:body][:password]
+          }
         else
           {}
         end
