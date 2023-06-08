@@ -11,6 +11,7 @@ module Wilbertils
 
     included do
       rescue_from(StandardError)                               { |e| rescue_error(e, error_code: :unhandled,    status: :internal_server_error) }
+      rescue_from(RuntimeError)                                { |e| rescue_error(e, error_code: :general,      status: :bad_request) }
       rescue_from(SilentError)                                 { |e| rescue_error(e, error_code: :silenced,     status: :bad_request) }
 
       # Wilbertils is used in non rails applications so check that rails is present for rails specific errors.
@@ -38,7 +39,10 @@ module Wilbertils
 
     def render_error error, code, status
       return unless defined?(render)
-      render json: { errors: [ { message: error.message, error_code: code || :unhandled } ] },
+      render json: { errors: [ {
+          message: [nil,:unhandled].include?(code) ? 'Unexpected error occurred.' : error.message,
+          error_code: code || :unhandled
+        } ] },
         status: status || :internal_server_error
     end
 
