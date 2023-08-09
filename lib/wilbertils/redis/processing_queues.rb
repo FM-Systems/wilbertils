@@ -12,7 +12,7 @@ module Wilbertils::Redis
     end
     
     def monitor queue_name
-      # can use scan to get the list of queues if we start using readis like crazy and have keys in the range of hundreds of thousands
+      # can use scan to get the list of queues if we start using redis like crazy and have keys in the range of hundreds of thousands
       redis.keys("#{queue_name}_processing").each do |processing_queue|
         next if (redis.llen processing_queue) == 0
         redis.lrange(processing_queue, 0, -1).each { |message| move_message_if_old message, processing_queue }
@@ -25,11 +25,14 @@ module Wilbertils::Redis
     def move_message_if_old message, processing_queue
       json_message = JSON.parse(message, symbolize_names: true)
       json_message[:message_retried_at] = json_message[:message_first_received_time] unless json_message[:message_retried_at]
-      if Time.now - Time.parse(json_message[:message_retried_at]) > 5.minutes
+      if is_stale?(json_message)
         json_message[:message_retried_at] = Time.now
-        # we will need to do proper locking or move to another queuing system to absolutely make sure duplication won't happen but this will fix it most of the time
-        redis.lpush(json_message[:queue_name], json_message.to_json) if redis.lrem(processing_queue, 0, message)
+        redis.lpush(json_message[:queue_name], json_message.to_json) if redis.lrem(processing_queue, 0, message) > 0
       end
+    end
+
+    def is_stale? json_message
+      Time.now - Time.parse(json_message[:message_retried_at]) > 5.minutes
     end
 
   end
