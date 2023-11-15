@@ -19,6 +19,7 @@ require "wilbertils/encrypt_decrypt"
 require "wilbertils/ftp_paths"
 require "wilbertils/authorization/oauth2"
 require "wilbertils/logger"
+require "wilbertils/rate_limit/limiter"
 
 module Wilbertils
 end
