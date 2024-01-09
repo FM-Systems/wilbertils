@@ -28,7 +28,7 @@ module Wilbertils
 
     def rescue_error(error, **options)
       Wilbertils::ErrorHandler.rescue_error(error, **options)
-      render_error(error, options[:error_code], options[:status]) unless options[:render_error] == false
+      render_error(error, options[:error_code], options[:status], options[:response_message]) unless options[:render_error] == false
     end
 
     def rescue_invalid_record error, **options
@@ -37,10 +37,10 @@ module Wilbertils
       render json: { errors: error.record.errors }, status: options[:status] || :bad_request
     end
 
-    def render_error error, code, status
+    def render_error error, code, status, response_message = nil
       return unless defined?(render)
       render json: { errors: [ {
-          message: [nil,:unhandled].include?(code) ? 'Unexpected error occurred.' : error.message,
+          message: [nil,:unhandled].include?(code) ? 'Unexpected error occurred.' : response_message || error.message,
           error_code: code || :unhandled
         } ] },
         status: status || :internal_server_error
