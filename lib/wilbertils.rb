@@ -20,6 +20,7 @@ require "wilbertils/ftp_paths"
 require "wilbertils/authorization/oauth2"
 require "wilbertils/logger"
 require "wilbertils/rate_limit/limiter"
+require "wilbertils/helpers/despatch_date"
 
 module Wilbertils
 end
