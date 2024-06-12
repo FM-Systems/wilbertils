@@ -29,4 +29,6 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'sucker_punch', '1.0.2'
   spec.add_runtime_dependency 'activesupport'
   spec.add_runtime_dependency 'redis-queue', '0.1.0'
+  spec.add_runtime_dependency 'holidays', '>= 8.6.0'
+  spec.add_runtime_dependency 'countries', '>= 5.2.0'
 end
