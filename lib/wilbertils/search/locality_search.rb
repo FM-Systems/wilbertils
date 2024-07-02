@@ -4,16 +4,20 @@ module Wilbertils; module Search
     module ClassMethods
       def match(params, threshold=10, locality_search = Wilbertils::Search::LocalitySearcher.new)
 
-        # for sublocality and locality, try transposing swap words
-        transposed_sublocality = locality_search.transpose_words(params[:sublocality])
-        transposed_locality = locality_search.transpose_words(params[:locality])
-        l = Locality.where(sublocality: [params[:sublocality], transposed_sublocality], locality: [params[:locality], transposed_locality], postcode: params[:postcode], region: params[:region], country: params[:country]).first
+        # look for exact match first
+        l = Locality.where(sublocality: params[:sublocality], locality: params[:locality], postcode: params[:postcode], region: params[:region], country: params[:country]).first
         return l if (l || !params[:fuzzy])
 
         unless params[:locality] && params[:locality].length > 0
           Rails.logger.info("locality not valid '#{params[:locality]}'")
           return nil
         end
+
+        # for sublocality and locality, try transposing swap words before ES fuzzy search
+        transposed_sublocality = locality_search.transpose_words(params[:sublocality])
+        transposed_locality = locality_search.transpose_words(params[:locality])
+        l = Locality.where(sublocality: [params[:sublocality], transposed_sublocality], locality: [params[:locality], transposed_locality], postcode: params[:postcode], region: params[:region], country: params[:country]).first
+        return l if l
 
         search = locality_search.match_closest_location(params)
         result = search.results.first
@@ -30,10 +34,6 @@ module Wilbertils; module Search
   # warning: fuzzy matching has caused issues with wrong matches
   class LocalitySearcher
 
-    def initialize(stop_words =%w(mount sands flat beach brook west east north south island river saint))
-      @stop_words = stop_words
-    end
-
     def match_closest_location(params)
       Locality.search([params[:sublocality], params[:locality], params[:region]].join(" "), where:
                                 {
@@ -45,15 +45,6 @@ module Wilbertils; module Search
                       limit:    10,
                       order:    {_score: :desc},
                       load:     false)
-    end
-
-    def find_best_word (locality)
-      return if locality.nil?
-      words = locality.split(' ')
-      words.reject! { |w| @stop_words.include?(w) } unless words.length == 1
-      words.max do |wordA, wordB|
-        wordA.length <=> wordB.length
-      end
     end
 
     SWAP_WORDS = %w(north east south west)
