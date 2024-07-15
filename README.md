@@ -27,3 +27,7 @@ TODO: Write usage instructions here
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create new Pull Request
+
+## Ruby Version
+
+Wilbertils should work with any version of Ruby from the other MF repositories. We can not pin it's version down exactly as sometimes the projects are slightly out of sync.
