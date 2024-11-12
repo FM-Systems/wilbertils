@@ -12,7 +12,7 @@ module Wilbertils::Authorization
     end
 
     private
-    attr :params
+    attr :params, :now
 
     def fetch_access_token
       begin
@@ -94,6 +94,20 @@ module Wilbertils::Authorization
       params[:token_name]&.to_sym || :access_token
     end
 
+    def token_expiry_name
+      params[:token_expiry_name]&.to_sym || :expires_in
+    end
+
+    def get_expires_in response
+      case response[token_expiry_name].to_s
+      when /\A\d+(\.\d+)?\z/
+        return response[token_expiry_name].to_i
+      else
+        return ((ActiveSupport::TimeZone['UTC'].parse(response[token_expiry_name].to_s) - now.utc).to_i rescue nil)
+      end
+    end
+
+
     # need to send '' as token_path for nz couriers because the auth url and data url are different so can't send the url and add /token at end
     def token_url
       params[:url] + (params[:token_path] || '/token')
@@ -121,7 +135,11 @@ module Wilbertils::Authorization
     end
 
     def store_token response
-      redis.set(token_key, response.merge(created_at: Time.now).to_json)
+      @now = Time.now
+      hash = { created_at: now }
+      expires_in = get_expires_in(response)
+      hash.merge!(expires_in: expires_in) if expires_in.present?
+      redis.set(token_key, response.merge(hash).to_json)
     end
 
     def retreive_access_token_from_redis
