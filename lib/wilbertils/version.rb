@@ -1,3 +1,3 @@
 module Wilbertils
-  VERSION = "1.10.8"
+  VERSION = "1.11.0"
 end
