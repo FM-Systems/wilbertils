@@ -33,7 +33,7 @@ module Wilbertils::Authorization
 
     def request_access_token
       begin
-        response = if params[:grant_type].to_sym == :get_client_credentials
+        response = if params[:grant_type].to_sym == :client_credentials_get
                     JSON.parse(rest_client_resource(token_url).get(), symbolize_names: true)
                    else
                     JSON.parse(rest_client_resource(token_url + query_string).post(token_request_body, token_request_headers), symbolize_names: true)
