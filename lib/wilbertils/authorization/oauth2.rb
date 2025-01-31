@@ -57,7 +57,7 @@ module Wilbertils::Authorization
 
     def token_request_headers
       case params[:grant_type].to_sym
-      when :client_credentials, :get_client_credentials
+      when :client_credentials, :client_credentials_get
         { Authorization: "Basic #{Base64.strict_encode64("#{params[:body][:client_id]}:#{params[:body][:client_secret]}")}" }
       when :password_credentials
         { Authorization: "Basic #{Base64.strict_encode64("#{params[:body][:client_id]}:#{params[:body][:client_secret]}")}" }
