@@ -33,7 +33,11 @@ module Wilbertils::Authorization
 
     def request_access_token
       begin
-        response = JSON.parse(rest_client_resource(token_url + query_string).post(token_request_body, token_request_headers), symbolize_names: true)
+        response = if params[:grant_type].to_sym == :client_credentials_get
+                    JSON.parse(rest_client_resource(token_url).get(), symbolize_names: true)
+                   else
+                    JSON.parse(rest_client_resource(token_url + query_string).post(token_request_body, token_request_headers), symbolize_names: true)
+                   end
         store_token(response)
         response[token_name]
       rescue => e
@@ -53,7 +57,7 @@ module Wilbertils::Authorization
 
     def token_request_headers
       case params[:grant_type].to_sym
-      when :client_credentials
+      when :client_credentials, :client_credentials_get
         { Authorization: "Basic #{Base64.strict_encode64("#{params[:body][:client_id]}:#{params[:body][:client_secret]}")}" }
       when :password_credentials
         { Authorization: "Basic #{Base64.strict_encode64("#{params[:body][:client_id]}:#{params[:body][:client_secret]}")}" }
