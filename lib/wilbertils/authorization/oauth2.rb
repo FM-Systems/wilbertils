@@ -154,7 +154,7 @@ module Wilbertils::Authorization
     def expired? token
       # default of 1 hr set, sometimes medipt send back nil and need to handle it
       # Added 60s leeway to ensure token is still valid when it reaches the client endpoint
-      !!token && ( ( Time.now.to_i - Time.parse(token[:created_at]).to_i ) > ( (token[:expires_in] - 60) || 3600 ) )
+      !!token && ( ( Time.now.to_i - Time.parse(token[:created_at]).to_i ) > ( (token[:expires_in].present? ? (token[:expires_in] - 60) : nil) || 3600 ) )
     end
 
     def redis
