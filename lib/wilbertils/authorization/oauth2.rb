@@ -152,6 +152,16 @@ module Wilbertils::Authorization
     end
 
     def expired? token
+      if params[:jwt_expiry]
+        begin
+          logger.info 'Checking JWT expiry'
+          jwt_expiry = Time.at(JSON.parse(Base64.decode64(token[token_name].match(/^([^.]+)\.([^.]+)\./)[2]))['exp'])
+          return true if jwt_expiry && Time.now >= jwt_expiry
+        rescue => e
+          logger.info 'Error handling JWT expiration'
+          logger.info e.message
+        end
+      end
       # default of 1 hr set, sometimes medipt send back nil and need to handle it
       # Added 60s leeway to ensure token is still valid when it reaches the client endpoint
       !!token && ( ( Time.now.to_i - Time.parse(token[:created_at]).to_i ) > ( (token[:expires_in].present? ? (token[:expires_in] - 60) : nil) || 3600 ) )
