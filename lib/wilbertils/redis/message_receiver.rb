@@ -33,7 +33,6 @@ module Wilbertils::Redis
           rescue => e
             logger.error "Error: Failed to process message using #{@message_processor_class}. Reason given: #{e.message}"
             rescue_with_handler e
-            METRICS.increment "message-error-#{@message_processor_class}" if defined?(METRICS)
           end
         end
       end
