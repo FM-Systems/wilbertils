@@ -31,7 +31,6 @@ module Wilbertils
             next
           end
           logger.info "received a message with id: #{msg.message_id}"
-          METRICS.increment "message-received-#{@message_processor_class}" if defined?(METRICS)
           begin
             params = @message_translator_class.new(msg).translate
             @message_processor_class.new(params).execute
@@ -40,7 +39,6 @@ module Wilbertils
             logger.error "Error: Failed to process message using #{@message_processor_class}. Reason given: #{e.message}"
             @client.delete_message(queue_url: @queue_url, receipt_handle: msg.receipt_handle)
             rescue_with_handler e
-            METRICS.increment "message-error-#{@message_processor_class}" if defined?(METRICS)
           end
         end
       end
