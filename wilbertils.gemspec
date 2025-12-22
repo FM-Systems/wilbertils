@@ -22,11 +22,11 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rspec"
   spec.add_development_dependency "rake"
   # At time of updating newrelic_rpm v9 caused a load issue with ActiveSupport::Logger
-  spec.add_runtime_dependency 'newrelic_rpm', '~> 9.6'
+  spec.add_runtime_dependency 'newrelic_rpm', '~> 9.24'
   spec.add_runtime_dependency "statsd-ruby"
   spec.add_runtime_dependency "jwt", '2.5.0'
   spec.add_runtime_dependency 'aws-sdk', '3.1.0'
-  spec.add_runtime_dependency 'airbrake', '13.0.4'
+  spec.add_runtime_dependency 'airbrake', '13.0.5'
   spec.add_runtime_dependency 'sucker_punch', '1.0.2'
   spec.add_runtime_dependency 'activesupport'
   spec.add_runtime_dependency 'redis-queue', '0.1.0'
