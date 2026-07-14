@@ -16,6 +16,11 @@ Or install it yourself as:
 
     $ gem install wilbertils
 
+## Live Local Wilbertils Updates in Docker
+Builds will pickup the current dev wilbertils with the COPY command, no changes required.
+Run docker commands with local wilbertils rather than the gem add `--env DEVELOPMENT=true` to commands (bundling local updates to wilbertils versions for example):
+`docker compose run --env DEVELOPMENT=true wilberforce bundle lock --conservative --update aws-sdk`
+
 ## Usage
 
 TODO: Write usage instructions here
