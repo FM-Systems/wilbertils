@@ -32,7 +32,7 @@ describe Wilbertils::MessageReceiverNew do
 
   end
 
-  subject { Wilbertils::MessageReceiverNew.new('queue_name', message_processor, message_translator, config, logger, TestShutdown.new(1)) }
+  subject { Wilbertils::MessageReceiverNew.new('queue_name', message_processor, message_translator, config, logger, 120, TestShutdown.new(1)) }
 
   before do
     expect(Wilbertils::SQS).to receive(:client).and_return(sqs_client)
@@ -67,7 +67,7 @@ describe Wilbertils::MessageReceiverNew do
     describe 'when a message without an id is encountered' do
       let(:message) { double('message', :message_id => '', :receipt_handle => 'xyz') }
       it 'logs an error but not raise an exception' do
-        expect(logger).to receive(:error).with /empty id/
+        expect(logger).to receive(:info).with /empty id/
         expect(message_translator).to_not receive(:new) # execution should short-circuit
         expect(sqs_client).to receive(:delete_message).with(queue_url: 'queue_name', receipt_handle: 'xyz')
         expect{ subject.poll }.to_not raise_error
@@ -77,7 +77,7 @@ describe Wilbertils::MessageReceiverNew do
     describe 'when a message without a nil id is encountered' do
       let(:message) { double('message', :message_id => nil, :receipt_handle => 'xyz') } # not sure this can actually happen
       it 'logs an error but not raise an exception' do
-        expect(logger).to receive(:error).with /nil id/
+        expect(logger).to receive(:info).with /nil id/
         expect(message_translator).to_not receive(:new) # execution should short-circuit
         expect(sqs_client).to receive(:delete_message).with(queue_url: 'queue_name', receipt_handle: 'xyz')
         expect{ subject.poll }.to_not raise_error
@@ -87,7 +87,7 @@ describe Wilbertils::MessageReceiverNew do
     describe 'when a message with an empty body is encountered' do
       let(:message) { double('message', :message_id => '123', :body => '', :receipt_handle => 'xyz') }
       it 'logs an error but not raise an exception' do
-        expect(logger).to receive(:error).with /empty body/
+        expect(logger).to receive(:info).with /empty body/
         expect(message_translator).to_not receive(:new) # execution should short-circuit
         expect(sqs_client).to receive(:delete_message).with(queue_url: 'queue_name', receipt_handle: 'xyz')
         expect{ subject.poll }.to_not raise_error
@@ -97,7 +97,7 @@ describe Wilbertils::MessageReceiverNew do
     describe 'when a message with a nil body is encountered' do
       let(:message) { double('message', :message_id => '123', :body => nil, :receipt_handle => 'xyz') } # not sure this can actually happen
       it 'logs an error but not raise an exception' do
-        expect(logger).to receive(:error).with /nil body/
+        expect(logger).to receive(:info).with /nil body/
         expect(message_translator).to_not receive(:new) # execution should short-circuit
         expect(sqs_client).to receive(:delete_message).with(queue_url: 'queue_name', receipt_handle: 'xyz')
         expect{ subject.poll }.to_not raise_error
@@ -109,7 +109,7 @@ describe Wilbertils::MessageReceiverNew do
         allow(message_processor).to receive(:execute).and_raise()
       end
 
-      subject { Wilbertils::MessageReceiverNew.new('queue_name', message_processor, message_translator, config, logger, TestShutdown.new(2) ) }
+      subject { Wilbertils::MessageReceiverNew.new('queue_name', message_processor, message_translator, config, logger, 120, TestShutdown.new(2) ) }
 
       it 'continues to poll' do
         expect(message_processor).to receive(:new).twice()
