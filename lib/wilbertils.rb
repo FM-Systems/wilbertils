@@ -1,3 +1,6 @@
+require "aws-sdk-s3"
+require "aws-sdk-sqs"
+require "aws-sdk-ses"
 require "wilbertils/version"
 require "wilbertils/search/locality_search"
 require "wilbertils/toggle"
