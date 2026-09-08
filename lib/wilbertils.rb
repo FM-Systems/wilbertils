@@ -24,6 +24,12 @@ require "wilbertils/authorization/jwt_auth"
 require "wilbertils/logger"
 require "wilbertils/rate_limit/limiter"
 require "wilbertils/helpers/despatch_date"
+require "wilbertils/localities/validation_error"
+require "wilbertils/localities/csv_parser"
+require "wilbertils/localities/change_set"
+require "wilbertils/localities/report"
+require "wilbertils/localities/timezone_csv"
+require "wilbertils/table_swap"
 
 module Wilbertils
 end
