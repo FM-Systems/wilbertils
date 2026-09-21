@@ -9,7 +9,6 @@ describe Wilbertils::Redis::MessageReceiver do
 
   let(:message) { double('message') }
   let(:logger) { double.as_null_object }
-  let(:redis_client) {  double('redis') }
   let(:processing_queue_object) { double('processing_queue') }
   let(:queue_object) { FakeClient.new(message) }
 
@@ -30,7 +29,6 @@ describe Wilbertils::Redis::MessageReceiver do
 
   before do
     allow(Wilbertils::Redis::Queue).to receive(:queue).and_return(queue_object)
-    allow_any_instance_of(described_class).to receive(:client).with(config).and_return(redis_client)
     allow(Wilbertils::Redis::ProcessingQueues).to receive(:new).and_return(processing_queue_object)
   end
 
