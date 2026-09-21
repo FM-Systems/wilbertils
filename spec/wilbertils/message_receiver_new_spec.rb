@@ -30,6 +30,10 @@ describe Wilbertils::MessageReceiverNew do
       FakeMessages.new(@message)
     end
 
+    # verify_partial_doubles needs the real method before the specs stub it.
+    def delete_message(hash)
+    end
+
   end
 
   subject { Wilbertils::MessageReceiverNew.new('queue_name', message_processor, message_translator, config, logger, 120, TestShutdown.new(1)) }

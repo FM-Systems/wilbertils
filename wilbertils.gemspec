@@ -21,6 +21,8 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "bundler", "~> 2"
   spec.add_development_dependency "rspec"
   spec.add_development_dependency "rake"
+  spec.add_development_dependency "activerecord"
+  spec.add_development_dependency "activerecord-nulldb-adapter"
   # At time of updating newrelic_rpm v9 caused a load issue with ActiveSupport::Logger
   spec.add_runtime_dependency 'newrelic_rpm', '~> 9.24'
   spec.add_runtime_dependency "statsd-ruby"
