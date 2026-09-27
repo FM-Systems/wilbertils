@@ -189,6 +189,55 @@ describe Wilbertils::Localities::CsvParser do
     end
   end
 
+  describe '.parse_files' do
+    it 'merges the files, keeping the first occurrence of a locality found in more than one' do
+      result = subject.parse_files([
+        ['AU_auspost.csv', io_for("Postcode,Locality,Longitude,Latitude\n3054,CARLTON NORTH,144.9707,-37.7876\n")],
+        ['AU_fms.csv', io_for("Postcode,Locality,Longitude,Latitude\n3054,Carlton North,150.0,-30.0\n3134,RINGWOOD,145.2,-37.8\n")]
+      ])
+
+      expect(result.country).to eq('AUSTRALIA')
+      expect(result.country_code).to eq('AU')
+      expect(result.rows.map(&:locality)).to eq(['CARLTON NORTH', 'RINGWOOD'])
+      expect(result.rows.first.longitude).to eq(BigDecimal('144.9707'))
+      expect(result.warnings).to eq(['AU_fms.csv: locality (3054, CARLTON NORTH) already present in another uploaded file - keeping the first occurrence'])
+    end
+
+    it "keeps each file's own parse warnings" do
+      result = subject.parse_files([
+        ['AU_auspost.csv', io_for("Postcode,Locality,Longitude,Latitude\n3054,CARLTON NORTH,144.9707,-37.7876\n3054,CARLTON NORTH,150.0,-30.0\n")]
+      ])
+
+      expect(result.warnings.size).to eq(1)
+      expect(result.warnings.first).to match(/different coordinates/)
+    end
+
+    it 'rejects files for different countries' do
+      expect do
+        subject.parse_files([
+          ['AU_auspost.csv', io_for("Postcode,Locality,Longitude,Latitude\n3054,CARLTON NORTH,144.9,-37.7\n")],
+          ['NZ_nzpost.csv', io_for("Postcode,Locality,Longitude,Latitude\n0110,WHANGAREI,174.3,-35.7\n")]
+        ])
+      end.to raise_error(Wilbertils::Localities::ValidationError, 'All files must be for the same country - got AUSTRALIA, NEW ZEALAND')
+    end
+
+    it 'rejects an empty upload' do
+      expect { subject.parse_files([]) }.to raise_error(Wilbertils::Localities::ValidationError, 'No files were provided')
+    end
+  end
+
+  describe '.mixed_country_error' do
+    it 'is nil when every file is for the same country' do
+      expect(subject.mixed_country_error(['AUSTRALIA', 'AUSTRALIA'])).to be_nil
+      expect(subject.mixed_country_error([])).to be_nil
+    end
+
+    it 'names each distinct country otherwise' do
+      expect(subject.mixed_country_error(['AUSTRALIA', 'NEW ZEALAND', 'AUSTRALIA']))
+        .to eq('All files must be for the same country - got AUSTRALIA, NEW ZEALAND')
+    end
+  end
+
   describe '.quick_validate' do
     it 'passes a well-formed file' do
       expect(subject.quick_validate(io_for("Postcode,Locality,Longitude,Latitude\n3054,CARLTON NORTH,144.9,-37.7\n"), filename: filename)).to be(true)

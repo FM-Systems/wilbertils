@@ -51,6 +51,44 @@ module Wilbertils; module Localities
         Result.new(country: country, country_code: country_code, rows: rows_by_key.values, warnings: warnings)
       end
 
+      # Parses one country's files as a single upload, e.g. AU_auspost.csv +
+      # AU_fms.csv. files is [[filename, io], ...]. A locality in more than
+      # one file keeps its first occurrence.
+      def parse_files(files)
+        raise ValidationError.new(['No files were provided']) if files.empty?
+
+        results = []
+        warnings = []
+        rows_by_key = {}
+
+        files.each do |filename, io|
+          result = parse(io, filename: filename)
+          results << result
+          warnings.concat(result.warnings)
+
+          result.rows.each do |row|
+            key = [row.postcode, row.sublocality, row.locality, row.region]
+            if rows_by_key.key?(key)
+              warnings << "#{filename}: locality (#{key.compact.join(', ')}) already present in another uploaded file - keeping the first occurrence"
+            else
+              rows_by_key[key] = row
+            end
+          end
+        end
+
+        error = mixed_country_error(results.map(&:country))
+        raise ValidationError.new([error]) if error
+
+        Result.new(country: results.first.country, country_code: results.first.country_code,
+                   rows: rows_by_key.values, warnings: warnings)
+      end
+
+      # nil when every file is for the same country.
+      def mixed_country_error(countries)
+        distinct = countries.uniq
+        "All files must be for the same country - got #{distinct.join(', ')}" if distinct.size > 1
+      end
+
       # Cheap synchronous check before the import job is enqueued.
       def quick_validate(io, filename:)
         country_code, = country_from_filename(filename)
