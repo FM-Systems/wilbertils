@@ -29,7 +29,7 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "jwt", '~> 2.10.3'
   spec.add_runtime_dependency 'aws-sdk', '3.3.0'
   spec.add_runtime_dependency 'airbrake', '13.0.5'
-  spec.add_runtime_dependency 'sucker_punch', '1.0.2'
+  spec.add_runtime_dependency 'sucker_punch', '~> 3.3'
   spec.add_runtime_dependency 'activesupport'
   spec.add_runtime_dependency 'redis-queue', '0.1.0'
   spec.add_runtime_dependency 'holidays', '~> 8.8.0'
